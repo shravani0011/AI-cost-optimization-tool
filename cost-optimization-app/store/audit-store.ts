@@ -2,11 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface ToolInput {
-    id: string;
-    tool: string;
-    plan: string;
-    monthlySpend: number;
-    seats: number;
+  id: string;
+  tool: string;
+  plan: string;
+  monthlySpend: number;
+  seats: number;
 }
 
 interface AuditStore {
@@ -25,6 +25,7 @@ interface AuditStore {
   ) => void;
 
   removeTool: (id: string) => void;
+  setTools: (tools: ToolInput[]) => void;
 }
 
 export const useAuditStore = create<AuditStore>()(
@@ -62,6 +63,9 @@ export const useAuditStore = create<AuditStore>()(
             },
           ],
         })),
+
+      setTools: (tools: ToolInput[]) =>
+        set({ tools }),
 
       updateTool: (id, field, value) =>
         set((state) => ({

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { runAudit } from "@/lib/audit-engine/runAudit";
 import { useAuditStore } from "@/store/audit-store";
-import { ToolCard } from "@/components/audit/tool-card";
+import { ToolCard } from "@/app/audit/tool-card";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const {
@@ -16,11 +17,14 @@ export default function HomePage() {
     setTeamSize,
     setUseCase,
     addTool,
+    setTools,
     updateTool,
     removeTool,
   } = useAuditStore();
 
-  const [auditResult, setAuditResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -186,6 +190,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={async () => {
+                setLoading(true);
                 const result = runAudit({
                   teamSize,
                   useCase: useCase as any,
@@ -198,13 +203,11 @@ export default function HomePage() {
                   })),
                 });
 
-                setAuditResult(result);
-
                 const { data, error } =
                   await supabase
-                    .from("audits")
+                    .from("Audits")
                     .insert({
-                      input: {
+                      Input: {
                         teamSize,
                         useCase,
                         tools,
@@ -214,98 +217,28 @@ export default function HomePage() {
                     })
                     .select()
                     .single();
-
-                console.log(data);
-                console.log(error);
+                setLoading(false);
+                if (data?.id) {
+                  router.replace(`/audit/${data.id}`);
+                }
               }}
-              className="mt-8 inline-flex h-11 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+              className=" mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-6 py-4 cursor-pointer text-lg
+              font-semibold text-white transition hover:opacity-90 black:hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50 "
             >
-              Generate Audit Report
+              {loading ? (
+                <>
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Generating Audit...
+                </>
+              ) : (
+                <>
+                  ⚡ Generate AI Cost Audit
+                </>
+              )}
             </button>
           </div>
         </div>
-        {auditResult && (
-          <div className="mt-10 space-y-6">
 
-            {/* Savings Hero */}
-            <div className="rounded-3xl border bg-card p-8">
-              <p className="text-sm text-muted-foreground">
-                Potential Savings
-              </p>
-
-              <h3 className="mt-2 text-4xl font-bold">
-                ${auditResult.monthlySavings}/mo
-              </h3>
-
-              <p className="mt-2 text-lg text-muted-foreground">
-                ${auditResult.annualSavings}/year
-              </p>
-            </div>
-
-            {/* Summary */}
-            <div className="rounded-2xl border bg-card p-6">
-              <h4 className="text-lg font-semibold">
-                Audit Summary
-              </h4>
-
-              <p className="mt-3 text-muted-foreground">
-                {auditResult.summary}
-              </p>
-            </div>
-
-            {/* Recommendations */}
-            <div className="space-y-4">
-              {auditResult.recommendations.map(
-                (
-                  recommendation: any,
-                  index: number
-                ) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border bg-card p-6"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 className="text-lg font-semibold capitalize">
-                          {recommendation.tool.replaceAll(
-                            "_",
-                            " "
-                          )}
-                        </h4>
-
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {recommendation.reason}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">
-                          Estimated Savings
-                        </p>
-
-                        <p className="text-2xl font-bold">
-                          $
-                          {
-                            recommendation.estimatedSavings
-                          }
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 rounded-xl bg-muted p-4 text-sm">
-                      <span className="font-medium">
-                        Recommendation:
-                      </span>{" "}
-                      {
-                        recommendation.recommendedAction
-                      }
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        )}
       </section>
 
       {/* Footer */}

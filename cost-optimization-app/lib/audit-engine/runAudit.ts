@@ -2,7 +2,7 @@ import {
     AuditInput,
     AuditResult,
     AuditRecommendation,
-} from "@/components/audit/audit";
+} from "@/app/audit/audit";
 
 export function runAudit(
     input: AuditInput
