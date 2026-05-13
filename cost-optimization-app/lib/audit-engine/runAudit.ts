@@ -180,6 +180,6 @@ export function runAudit(
         summary:
             monthlySavings > 0
                 ? `We identified approximately $${monthlySavings}/month in potential AI tooling savings.`
-                : "Your current AI tooling setup already appears relatively cost efficient.",
+                : "No major optimization opportunities detected for your current setup.",
     };
 }
